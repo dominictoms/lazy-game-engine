@@ -1,0 +1,301 @@
+<!doctype html>
+<head>
+	<title>bad game engine</title>
+</head>
+<body>
+	<script src = "engine.js"></script>
+	<script>
+		// set the games preferences
+		const config =
+		{
+			width: 420,
+			height: 240,
+			framerate: 60,
+			pixel: true,
+		};
+		
+		// launch the game with the preferences
+		init(config);
+		
+		// global variables
+		var jumpCount = 2;
+		var gameStart = 0;
+		
+		// executes at the beginning of the game
+		function awake()
+		{
+			// not using strict mode is for pussies
+			"use strict";
+			
+			const t = 16;
+			
+			const ground01 = [
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\n",
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			];
+			
+			const ground02 = [
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\n",
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			];
+			
+			const ground03 = [
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\n",
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			];
+			
+			const ground04 = [
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\n",
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			];
+			
+			const pipe = [
+				0, "\n", 1, "\n", 1, "\n", 1, "\n", 1
+			];
+		
+			// bg col
+			setBgCol("rgb(107, 140, 255)");
+			
+			// scene test
+			createScene("game", 1, undefined, gameUpdate);
+			setActiveScene("game");
+			
+			// layers
+			createLayer("bg", "game", 1, 0.65);
+			createLayer("player", "game", 2, 1);
+			createLayer("foreground", "game", 3, 1.25);
+			createLayer("ui", "game", 4, 0);
+			
+			// disable physics
+			//setPhysicsActive(false);
+		
+			// create sprites
+			createSprite("miku", "assets/miku.png", 16, 16);
+			createSprite("bush00", "assets/bush00.png");
+			createSprite("bush01", "assets/bush01.png", 16, 16);
+			createSprite("cloud", "assets/cloud.png", 16, 32);
+			createSprite("ground", "assets/ground.png");
+			createSprite("pipe", "assets/pipe.png", 32, 16);
+			createSprite("block00", "assets/block00.png", 16, 16);
+			createSprite("block01", "assets/block01.png");
+			createSprite("step", "assets/step.png");
+			
+			// bushes
+			drawSprite("bush00", "bush00", 0, "game", "player", -8 * t, 3.5 * t);
+			drawSprite("bush01", "bush01", [0, 1, 1, 1, 2], "game", "player", 3 * t, 5 * t);
+			drawSprite("bush00", "bush02", 0, "game", "player", 7 * t, 4.5 * t);
+			drawSprite("bush01", "bush03", [0, 1, 2], "game", "player", 15 * t, 5 * t);
+			drawSprite("bush01", "bush04", [0, 1, 1, 2], "game", "player", 33 * t, 5 * t);
+			drawSprite("bush00", "bush05", 0, "game", "player", 40 * t, 3.5 * t);
+			drawSprite("bush01", "bush06", [0, 1, 1, 1, 2], "game", "player", 51 * t, 5 * t);
+			drawSprite("bush00", "bush07", 0, "game", "player", 55 * t, 4.5 * t);
+			drawSprite("bush01", "bush08", [0, 1, 2], "game", "player", 63 * t, 5 * t);
+			drawSprite("bush01", "bush09", [0, 1, 1, 2], "game", "player", 81 * t, 5 * t);
+			drawSprite("bush00", "bush10", 0, "game", "player", 88 * t, 3.5 * t);
+			drawSprite("bush01", "bush11", [0, 1, 1, 1, 2], "game", "player", 99 * t, 5 * t);
+			drawSprite("bush00", "bush12", 0, "game", "player", 103 * t, 4.5 * t);
+			drawSprite("bush01", "bush13", [0, 1, 2], "game", "player", 111 * t, 5 * t);
+			drawSprite("bush01", "bush13", [1, 1], "game", "player", 130 * t, 5 * t);
+			drawSprite("bush00", "bush14", 0, "game", "player", 136 * t, 3.5 * t);
+			drawSprite("bush01", "bush15", 2, "game", "player", 151 * t, 5 * t);
+			drawSprite("bush00", "bush16", 0, "game", "player", 151 * t, 4.5 * t);
+			drawSprite("bush01", "bush17", [0, 1, 2], "game", "player", 158 * t, 5 * t);
+			
+			// clouds
+			drawSprite("cloud", "cloud00", [0, 1, 2], "game", "bg", -2 * t, -5.5 * t);
+			drawSprite("cloud", "cloud01", [0, 1, 2], "game", "bg", 11 * t, -6.5 * t);
+			drawSprite("cloud", "cloud02", [0, 1, 1, 1, 2], "game", "bg", 19 * t, -5.5 * t);
+			drawSprite("cloud", "cloud03", [0, 1, 1, 2], "game", "bg", 28 * t, -6.5 * t);
+			drawSprite("cloud", "cloud04", [0, 1, 2], "game", "bg", 48 * t, -5.5 * t);
+			drawSprite("cloud", "cloud05", [0, 1, 2], "game", "bg", 59 * t, -6.5 * t);
+			drawSprite("cloud", "cloud06", [0, 1, 1, 1, 2], "game", "bg", 66 * t, -5.5 * t);
+			drawSprite("cloud", "cloud07", [0, 1, 2], "game", "bg", 96 * t, -5.5 * t);
+			drawSprite("cloud", "cloud08", [0, 1, 2], "game", "bg", 107 * t, -6.5 * t);
+			drawSprite("cloud", "cloud10", [0, 1, 1, 1, 2], "game", "bg", 115 * t, -5.5 * t);
+			drawSprite("cloud", "cloud11", [0, 1, 1, 2], "game", "bg", 123 * t, -6.5 * t);
+			drawSprite("cloud", "cloud12", [0, 1, 2], "game", "bg", 144 * t, -5.5 * t);
+			
+			// blocks
+			drawSprite("block00", "block0", 0, "game", "player", 8 * t, 1.5 * t);
+			drawSprite("block01", "block1", 0, "game", "player", 12 * t, 1.5 * t);
+			drawSprite("block00", "block2", 0, "game", "player", 13 * t, 1.5 * t);
+			drawSprite("block01", "block3", 0, "game", "player", 14 * t, 1.5 * t);
+			drawSprite("block00", "block4", 0, "game", "player", 15 * t, 1.5 * t);
+			drawSprite("block01", "block5", 0, "game", "player", 16 * t, 1.5 * t);
+			drawSprite("block00", "block6", 0, "game", "player", 14 * t, -2.5 * t);
+			drawSprite("block01", "block7", 0, "game", "player", 69 * t, 1.5 * t);
+			drawSprite("block00", "block8", 0, "game", "player", 70 * t, 1.5 * t);
+			drawSprite("block01", "block9", 0, "game", "player", 71 * t, 1.5 * t);
+			drawSprite("block01", "block10", [0, 0, 0, 0, 0, 0, 0, 0], "game", "player", 72 * t, -2.5 * t);
+			drawSprite("block01", "block11", [0, 0, 0], "game", "player", 83 * t, -2.5 * t);
+			drawSprite("block00", "block12", 0, "game", "player", 86 * t, -2.5 * t);
+			drawSprite("block01", "block13", 0, "game", "player", 86 * t, 1.5 * t);
+			drawSprite("block01", "block14", [0, 0], "game", "player", 92 * t, 1.5 * t);
+			drawSprite("block00", "block15", 0, "game", "player", 98 * t, 1.5 * t);
+			drawSprite("block00", "block16", 0, "game", "player", 101 * t, 1.5 * t);
+			drawSprite("block00", "block17", 0, "game", "player", 104 * t, 1.5 * t);
+			drawSprite("block00", "block18", 0, "game", "player", 101 * t, -2.5 * t);
+			drawSprite("block01", "block19", 0, "game", "player", 110 * t, 1.5 * t);
+			drawSprite("block01", "block20", [0, 0, 0], "game", "player", 113 * t, -2.5 * t);
+			drawSprite("block01", "block21", 0, "game", "player", 120 * t, -2.5 * t);
+			drawSprite("block00", "block22", 0, "game", "player", 121 * t, -2.5 * t);
+			drawSprite("block00", "block23", 0, "game", "player", 122 * t, -2.5 * t);
+			drawSprite("block01", "block24", 0, "game", "player", 123 * t, -2.5 * t);
+			drawSprite("block01", "block25", [0, 0], "game", "player", 121 * t, 1.5 * t);
+			drawSprite("block01", "block26", [0, 0], "game", "player", 159 * t, 1.5 * t);
+			drawSprite("block00", "block27", 0, "game", "player", 161 * t, 1.5 * t);
+			drawSprite("block01", "block28", 0, "game", "player", 162 * t, 1.5 * t);
+			
+			// step
+			drawSprite("step", "step0", [0, 0, 0, 0], "game", "player", 126 * t, 5 * t);
+			drawSprite("step", "step1", [0, 0, 0], "game", "player", 127 * t, 4 * t);
+			drawSprite("step", "step2", [0, 0], "game", "player", 128 * t, 3 * t);
+			drawSprite("step", "step3", 0, "game", "player", 129 * t, 2 * t);
+			drawSprite("step", "step4", [0, 0, 0, 0], "game", "player", 132 * t, 5 * t);
+			drawSprite("step", "step5", [0, 0, 0], "game", "player", 132 * t, 4 * t);
+			drawSprite("step", "step6", [0, 0], "game", "player", 132 * t, 3 * t);
+			drawSprite("step", "step7", 0, "game", "player", 132 * t, 2 * t);
+			drawSprite("step", "step8", [0, 0, 0, 0, 0], "game", "player", 140 * t, 5 * t);
+			drawSprite("step", "step9", [0, 0, 0, 0], "game", "player", 141 * t, 4 * t);
+			drawSprite("step", "step10", [0, 0, 0], "game", "player", 142 * t, 3 * t);
+			drawSprite("step", "step11", [0, 0], "game", "player", 143 * t, 2 * t);
+			drawSprite("step", "step12", [0, 0, 0, 0], "game", "player", 147 * t, 5 * t);
+			drawSprite("step", "step13", [0, 0, 0], "game", "player", 147 * t, 4 * t);
+			drawSprite("step", "step14", [0, 0], "game", "player", 147 * t, 3 * t);
+			drawSprite("step", "step15", 0, "game", "player", 147 * t, 2 * t);
+			
+			// pipes
+			drawSprite("pipe", "pipe00", pipe, "game", "player", 20 * t, 4 * t);
+			drawSprite("pipe", "pipe01", pipe, "game", "player", 30 * t, 3 * t);
+			drawSprite("pipe", "pipe02", pipe, "game", "player", 38 * t, 2 * t);
+			drawSprite("pipe", "pipe03", pipe, "game", "player", 49 * t, 2 * t);
+			drawSprite("pipe", "pipe04", pipe, "game", "player", 154 * t, 4 * t);
+			
+			// ground
+			drawSprite("ground", "ground00", ground01, "game", "player", -8 * t, 6 * t);
+			drawSprite("ground", "ground01", ground02, "game", "player", 63 * t, 6 * t);
+			drawSprite("ground", "ground02", ground03, "game", "player", 81 * t, 6 * t);
+			drawSprite("ground", "ground03", ground04, "game", "player", 147 * t, 6 * t);
+			
+			// draw sprites
+			drawSprite("miku", "miku01", 0, "game", "player", -6 * t, -136);
+			
+			// add collision to objects
+			var solidPlatforms = ["ground00", "ground01", "ground02", "ground03", "pipe00", "pipe01", "pipe02", "pipe03", "pipe04"];
+			for (var i = 0; i < solidPlatforms.length; i++)
+			{
+				setSolidCollision(solidPlatforms[i], true, true);
+			}
+			
+			// animate blocks
+			var animatedBlocks = [0, 2, 4, 6, 8, 12, 15, 16, 17, 18, 22, 23, 27];
+			for (var i = 0; i < animatedBlocks.length; i++)
+			{
+				setSpriteAnimation("block" + animatedBlocks[i], "idle", 8, 0, 2);
+			}
+			
+			var hitIndex = 0;
+			
+			// add collision to blocks
+			for (var i = 0; i < 29; i++)
+			{
+				// add hit triggers to special blocks
+				if (i == animatedBlocks[hitIndex])
+				{
+					hitIndex++;
+					setSolidCollision("block" + i, true, true, undefined, specialBlock);
+					continue;
+				}
+
+				// add hitbox
+				setSolidCollision("block" + i, true, true);
+			}
+			
+			// add collision to steps
+			for (var i = 0; i < 16; i++)
+			{
+				setSolidCollision("step" + i, true, true);
+			}
+			
+			// set collisions
+			setSolidCollision("miku01", false, true, land);
+
+			// set physics
+			setPhysics("miku01", true, 0.3);
+			
+			// set animations
+			setSpriteAnimation("miku01", "idle", 4, 0, 1);
+			
+			// cams
+			createCamera("cam", -8, 0);
+			setActiveCamera("cam", "game");
+			lockActiveCamX(82, 3054);
+		}
+		
+		// executes every frame of the game
+		function gameUpdate()
+		{
+			// calculate movement velocity
+			var velocity = {x: 0, y: 0};
+			if (onKeyDown("a")) velocity.x -= 2;
+			if (onKeyDown("d")) velocity.x += 2;
+			
+			// start game
+			/*
+			if (onKeyPress(" ") && !gameStart)
+			{
+				gameStart = 1;
+				setPhysicsActive(true);
+			}
+			*/
+			
+			// jump!!
+			if (onKeyPress("w") && jumpCount)
+			{
+				setSpriteAccel("miku01", -3 - (1.5 * jumpCount));				
+				jumpCount--;
+			}
+			
+			// move sprite
+			transformSprite("miku01", velocity.x, velocity.y);
+			
+			// get spriteInfo
+			var spriteInfo = getSpriteInfo("miku01");
+			
+			// animate sprite		
+			if (velocity.x || velocity.y)
+			{
+				if (spriteInfo.anim != "walk") setSpriteAnimation("miku01", "walk", 4, 2, 3);
+			}
+			
+			else if (!velocity.x && !velocity.y)
+			{
+				if (spriteInfo.anim == "walk") setSpriteAnimation("miku01", "idle", 4, 0, 1);
+			}
+			
+			// reset sprite
+			if (spriteInfo.y > 120)
+			{
+				setSpriteAccel("miku01", 0);
+				jumpCount = 2;
+				moveSprite("miku01", -6 * 16, -136);
+			}
+			
+			// camera follow sprite
+			var camPos = getActiveCamInfo();
+			moveActiveCam(lerp(camPos.x, spriteInfo.cx, 0.09), 0);
+		}
+		
+		// executes when the player lands
+		function land()
+		{
+			jumpCount = 2;
+		}
+		
+		function specialBlock()
+		{
+			console.log("special block hit");
+		}
+	</script>
+</body>
+</html>
